@@ -1,42 +1,37 @@
-cat > Jenkinsfile <<'EOF'
 pipeline {
-  agent any
-  environment {
-    DOCKER_IMAGE = "hello-app:\${BUILD_NUMBER}"
-  }
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/karthikgit123/jenkins-maven-docker-demo.git'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                bat 'mvn clean package'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.withServer('tcp://16.16.208.134:2375') {
+                        docker.build('hello-app', '.')
+                    }
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    docker.withServer('tcp://16.16.208.134:2375') {
+                        sh 'docker run -d --name hello-container hello-app'
+                    }
+                }
+            }
+        }
     }
-    stage('Build (Maven)') {
-      steps {
-        sh 'mvn -B clean package'
-      }
-    }
-    stage('Build Docker image') {
-      steps {
-        sh 'docker build -t $DOCKER_IMAGE .'
-        sh 'docker images | head -n 20'
-      }
-    }
-    stage('Run container (test)') {
-      steps {
-        sh '''
-          docker rm -f jenkins-demo || true
-          docker run --name jenkins-demo -d $DOCKER_IMAGE
-          sleep 3
-          docker logs jenkins-demo || true
-          docker rm -f jenkins-demo || true
-        '''
-      }
-    }
-  }
-  post {
-    always {
-      sh 'docker image prune -f || true'
-    }
-  }
 }
-EOF
