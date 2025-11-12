@@ -10,6 +10,8 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
+                set PATH=C:\Windows\System32;%PATH%
+                set PATH=C:\Program Files\Apache\Maven\apache-maven-3.9.11\bin;%PATH%
                 bat 'mvn clean package'
             }
         }
@@ -28,6 +30,8 @@ pipeline {
             steps {
                 script {
                     docker.withServer('tcp://16.16.208.134:2375') {
+                        set PATH=C:\Windows\System32;%PATH%
+                set PATH=C:\Program Files\Docker\Docker\resources\bin
                         bat 'docker run -d --name hello-container hello-app'
                     }
                 }
