@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     docker.withServer('tcp://16.16.208.134:2375') {
-                        sh 'docker run -d --name hello-container hello-app'
+                        bat 'docker run -d --name hello-container hello-app'
                     }
                 }
             }
